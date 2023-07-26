@@ -217,35 +217,37 @@ SelfObject::update( const ActionEffector & act,
 
     /////////////////////////////////////////
     // base command
-    switch ( act.lastBodyCommandType() ) {
-    case PlayerCommand::DASH:
-        act.getDashInfo( &accel, &dash_power );
-        break;
-    case PlayerCommand::TURN:
-        act.getTurnInfo( &turn_moment, &turn_err );
-        break;
-    case PlayerCommand::TACKLE:
-        if ( ! act.tackleFoul() )
-        {
-            M_tackle_expires = ServerParam::i().tackleCycles();
+    for (const auto& c: act.lastBodyCommandType()){
+        switch ( c ) {
+        case PlayerCommand::DASH:
+            act.getDashInfo( &accel, &dash_power );
+            break;
+        case PlayerCommand::TURN:
+            act.getTurnInfo( &turn_moment, &turn_err );
+            break;
+        case PlayerCommand::TACKLE:
+            if ( ! act.tackleFoul() )
+            {
+                M_tackle_expires = ServerParam::i().tackleCycles();
+            }
+            M_kicking = true;
+            break;
+        case PlayerCommand::MOVE:
+            M_pos = act.getMovePos();
+            //M_vel.assign( 0.0, 0.0 );
+            //M_vel_error.assign( 0.0, 0.0 );
+            break;
+        case PlayerCommand::CATCH:
+            // M_last_catch_time = act.lastActionTime();
+            break;
+        case PlayerCommand::KICK:
+            M_kicking = true;
+            break;
+        default:
+            //std::cerr << current << " self update : no command!!"
+            //          << std::endl;
+            break;
         }
-        M_kicking = true;
-        break;
-    case PlayerCommand::MOVE:
-        M_pos = act.getMovePos();
-        //M_vel.assign( 0.0, 0.0 );
-        //M_vel_error.assign( 0.0, 0.0 );
-        break;
-    case PlayerCommand::CATCH:
-        // M_last_catch_time = act.lastActionTime();
-        break;
-    case PlayerCommand::KICK:
-        M_kicking = true;
-        break;
-    default:
-        //std::cerr << current << " self update : no command!!"
-        //          << std::endl;
-        break;
     }
 
     M_last_catch_time = act.getCatchTime();
@@ -481,8 +483,8 @@ SelfObject::updateAfterSenseBody( const BodySensor & sense,
     // internal update
     update( act, current );
 
-    M_kicking = ( act.lastBodyCommandType() == PlayerCommand::KICK
-                  || act.lastBodyCommandType() == PlayerCommand::TACKLE );
+    M_kicking = ( act.isLastBodyCommandType(PlayerCommand::KICK)
+                  || act.isLastBodyCommandType(PlayerCommand::TACKLE) );
 
     // if ( act.lastBodyCommandType() == PlayerCommand::CATCH )
     // {

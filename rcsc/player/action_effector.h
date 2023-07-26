@@ -59,7 +59,8 @@ private:
     const PlayerAgent & M_agent;
 
     //! pointer of body action for dynamic allocation
-    PlayerBodyCommand * M_command_body;
+    // PlayerBodyCommand * M_command_body;
+    std::vector<PlayerBodyCommand *> M_commands_body;
 
     //! pointer of turn_neck for dynamic allocation
     PlayerTurnNeckCommand * M_command_turn_neck;
@@ -82,7 +83,8 @@ private:
     GameTime M_last_action_time;
 
     //! last body command type
-    PlayerCommand::Type M_last_body_command_type[2];
+    // PlayerCommand::Type M_last_body_command_type[2];
+    std::vector<PlayerCommand::Type> M_last_body_commands_type[2];
 
     //! checker of turn_neck. true if turn_neck was done at last
     bool M_done_turn_neck;
@@ -182,9 +184,9 @@ public:
       \brief get const pointer to the player's body command object
       \return const pointer to the body command object
     */
-    const PlayerBodyCommand * bodyCommand() const
+    const std::vector<PlayerBodyCommand *>  bodyCommand() const
       {
-          return M_command_body;
+          return M_commands_body;
       }
 
     /*!
@@ -390,20 +392,38 @@ public:
       \brief get last perfomed command type to update SelfObject
       \return command type Id
     */
-    PlayerCommand::Type lastBodyCommandType() const
+    const std::vector<PlayerCommand::Type>& lastBodyCommandType() const
       {
-          return M_last_body_command_type[0];
+        return M_last_body_commands_type[0];
+      }
+
+    bool isLastBodyCommandType(PlayerCommand::Type command_type) const
+      {
+        for (const auto c: M_last_body_commands_type[0])
+          if (c == command_type)
+            return true;
+        return false;
       }
 
     /*!
       \brief get last perfomed command type to update SelfObject
       \return command type Id
     */
-    PlayerCommand::Type lastBodyCommandType( int i ) const
+    bool isLastBodyCommandType( PlayerCommand::Type command_type, int i ) const
       {
-          return ( 0 <= i && i < 2
-                   ? M_last_body_command_type[i]
-                   : M_last_body_command_type[0] );
+        if (0 <= i && i < 2)
+          for (const auto c: M_last_body_commands_type[i])
+            if (c == command_type)
+              return true;
+        return false;
+      }
+    
+    bool isBodyCommandType(PlayerCommand::Type command_type) const
+      {
+        for (const auto* c: M_commands_body)
+            if (c->type() == command_type)
+              return true;
+        return false;
       }
 
     /*!

@@ -2606,7 +2606,7 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
 #endif
 
         if ( see.balls().front().dist_ < 3.15
-             && act.lastBodyCommandType() != PlayerCommand::KICK
+             && !act.isLastBodyCommandType(PlayerCommand::KICK)
              && ball().seenRPos().isValid()
              && ball().seenRPos().r() < 3.15
              && self().velValid()
@@ -2674,8 +2674,8 @@ WorldModel::estimateBallVelByPosDiff( const VisualSensor & see,
                       __FILE__" (estimateBallVelByPosDiff) vel update by rpos diff(3) " );
 #endif
         if ( see.balls().front().dist_ < 3.15
-             && act.lastBodyCommandType( 0 ) != PlayerCommand::KICK
-             && act.lastBodyCommandType( 1 ) != PlayerCommand::KICK
+             && !act.isLastBodyCommandType( PlayerCommand::KICK, 0 ) 
+             && !act.isLastBodyCommandType( PlayerCommand::KICK, 1 ) 
              && ball().seenRPos().isValid()
              && ball().seenRPos().r() < 3.15
              && self().velValid()

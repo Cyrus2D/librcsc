@@ -149,7 +149,7 @@ BallObject::update( const ActionEffector & act,
         /////////////////////////////////////////////////////////////
         // kicked in last cycle
         // get info from stored action param
-        if ( act.lastBodyCommandType() == PlayerCommand::KICK )
+        if ( act.isLastBodyCommandType(PlayerCommand::KICK))
         {
             act.getKickInfo( &accel, &accel_err );
 
@@ -603,7 +603,7 @@ BallObject::updateByHear( const ActionEffector & act,
     M_heard_vel = heard_vel;
     M_heard_vel_count = 0;
 
-    if ( act.lastBodyCommandType() == PlayerCommand::KICK )
+    if ( act.isLastBodyCommandType(PlayerCommand::KICK) )
     {
 #ifdef DEBUG_PRINT
         dlog.addText( Logger::WORLD,

@@ -54,7 +54,7 @@ namespace rcsc {
 */
 ActionEffector::ActionEffector( const PlayerAgent & agent )
     : M_agent( agent ),
-      M_command_body( nullptr ),
+      M_commands_body(),
       M_command_turn_neck( nullptr ),
       M_command_change_view( nullptr ),
       M_command_change_focus( nullptr ),
@@ -81,7 +81,7 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
 {
     for ( int i = 0; i < 2; ++i )
     {
-        M_last_body_command_type[i] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[i] = std::vector<PlayerCommand::Type>();
     }
 
     for ( int i = PlayerCommand::INIT;
@@ -98,11 +98,9 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
 */
 ActionEffector::~ActionEffector()
 {
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
+    for (auto * c: M_commands_body)
+        delete c;
+    M_commands_body.clear();
 
     if ( M_command_turn_neck )
     {
@@ -155,7 +153,7 @@ ActionEffector::reset()
 
     for ( int i = 0; i < 2; ++i )
     {
-        M_last_body_command_type[i] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[i].clear();
     }
 
     M_done_turn_neck = false;
@@ -241,7 +239,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                           sense.kickCount(),
                           M_command_counter[PlayerCommand::KICK] );
         }
-        M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[0].clear();
         M_kick_accel.assign( 0.0, 0.0 );
         M_kick_accel_error.assign( 0.0, 0.0 );
         M_command_counter[PlayerCommand::KICK] = sense.kickCount();
@@ -263,7 +261,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                           sense.turnCount(),
                           M_command_counter[PlayerCommand::TURN] );
         }
-        M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[0].clear();
         M_turn_actual = 0.0;
         M_turn_error = 0.0;
         M_command_counter[PlayerCommand::TURN] = sense.turnCount();
@@ -285,7 +283,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                           sense.dashCount(),
                           M_command_counter[PlayerCommand::DASH] );
         }
-        M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[0].clear();
         M_dash_accel.assign( 0.0, 0.0 );
         //M_dash_accel_error.assign( 0.0, 0.0 );
         M_dash_power = 0.0;
@@ -308,7 +306,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                           sense.moveCount(),
                           M_command_counter[PlayerCommand::MOVE] );
         }
-        M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[0].clear();
         M_move_pos.invalidate();
         M_command_counter[PlayerCommand::MOVE] = sense.moveCount();
     }
@@ -329,7 +327,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                           sense.catchCount(),
                           M_command_counter[PlayerCommand::CATCH] );
         }
-        M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[0].clear();
         //M_catch_time.assign( 0, 0 ); // Do *NOT* reset the time
         M_command_counter[PlayerCommand::CATCH] = sense.catchCount();
     }
@@ -350,7 +348,7 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
                           sense.tackleCount(),
                           M_command_counter[PlayerCommand::TACKLE] );
         }
-        M_last_body_command_type[0] = PlayerCommand::ILLEGAL;
+        M_last_body_commands_type[0].clear();
         M_tackle_power = 0.0;
         M_tackle_dir = 0.0;
         M_tackle_foul = false;
@@ -463,23 +461,11 @@ ActionEffector::checkCommandCount( const BodySensor & sense )
 std::ostream &
 ActionEffector::makeCommand( std::ostream & to )
 {
-    M_last_body_command_type[1] = M_last_body_command_type[0];
+    M_last_body_commands_type[1] = M_last_body_commands_type[0];
 
     M_last_action_time = M_agent.world().time();
 
-    if ( M_command_body )
-    {
-        M_last_body_command_type[0] = M_command_body->type();
-        if ( M_last_body_command_type[0] == PlayerCommand::CATCH )
-        {
-            M_catch_time = M_agent.world().time();
-        }
-        M_command_body->toCommandString( to );
-        incCommandCount( M_command_body->type() );
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
-    else
+    if (M_commands_body.size() == 0)
     {
         if ( ! M_agent.world().self().isFrozen() )
         {
@@ -495,6 +481,19 @@ ActionEffector::makeCommand( std::ostream & to )
             incCommandCount( PlayerCommand::TURN );
         }
     }
+    else
+    {
+        for(const auto* command: M_commands_body){
+            M_last_body_commands_type[0].emplace_back(command->type());
+            if (command->type() == PlayerCommand::CATCH)
+                M_catch_time = M_agent.world().time();
+            command->toCommandString(to);
+            incCommandCount(command->type());
+            delete command;
+        }
+        M_commands_body.clear();
+    }
+
 
     if ( M_command_turn_neck )
     {
@@ -561,11 +560,9 @@ ActionEffector::makeCommand( std::ostream & to )
 void
 ActionEffector::clearAllCommands()
 {
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
+    for (auto * c: M_commands_body)
+        delete c;
+    M_commands_body.clear();
 
     if ( M_command_turn_neck )
     {
@@ -654,12 +651,7 @@ ActionEffector::setKick( const double & power,
 
     //////////////////////////////////////////////////
     // create command object
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
-    M_command_body = new PlayerKickCommand( command_power, rel_dir.degree() );
+    M_commands_body.emplace_back(new PlayerKickCommand( command_power, rel_dir.degree() ));
 
     // set estimated action effect
     M_kick_accel.setPolar( command_power * M_agent.world().self().kickRate(),
@@ -846,12 +838,7 @@ ActionEffector::setDash( const double & power,
     //
     // create command object
     //
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
-    M_command_body = new PlayerDashCommand( command_power, command_dir );
+    M_commands_body.emplace_back(new PlayerDashCommand( command_power, command_dir ));
 
     //
     // set estimated command effect: accel magnitude
@@ -951,14 +938,9 @@ ActionEffector::setTurn( const AngleDeg & moment )
 
     //////////////////////////////////////////////////
     // create command object
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
 
     // moment is a command param, not a real moment.
-    M_command_body = new PlayerTurnCommand( command_moment );
+    M_commands_body.emplace_back(new PlayerTurnCommand( command_moment ));
 
     // set estimated action effect
     /*
@@ -1093,12 +1075,7 @@ ActionEffector::setMove( const double & x,
 
     //////////////////////////////////////////////////
     // create command object
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
-    M_command_body = new PlayerMoveCommand( command_x, command_y );
+    M_commands_body.emplace_back(new PlayerMoveCommand( command_x, command_y ));
 
     M_move_pos.assign( command_x, command_y );
 }
@@ -1149,12 +1126,7 @@ ActionEffector::setCatch()
 
     //////////////////////////////////////////////////
     // create command object
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
-    M_command_body = new PlayerCatchCommand( catch_angle.degree() );
+    M_commands_body.emplace_back(new PlayerCatchCommand( catch_angle.degree() ));
 }
 
 /*-------------------------------------------------------------------*/
@@ -1221,12 +1193,7 @@ ActionEffector::setTackle( const double & power_or_dir,
 
     //////////////////////////////////////////////////
     // create command object
-    if ( M_command_body )
-    {
-        delete M_command_body;
-        M_command_body = nullptr;
-    }
-    M_command_body = new PlayerTackleCommand( actual_power_or_dir, foul );
+    M_commands_body.emplace_back(new PlayerTackleCommand( actual_power_or_dir, foul ));
 
     // set estimated command effect
     M_tackle_power = actual_power_or_dir;
@@ -1609,8 +1576,7 @@ AngleDeg
 ActionEffector::queuedNextSelfBody() const
 {
     AngleDeg next_angle = M_agent.world().self().body();
-    if ( M_command_body
-         && M_command_body->type() == PlayerCommand::TURN )
+    if (isBodyCommandType(PlayerCommand::TURN))
     {
         double moment = 0.0;
         getTurnInfo( &moment, NULL );
@@ -1628,8 +1594,7 @@ Vector2D
 ActionEffector::queuedNextSelfPos() const
 {
     Vector2D vel = M_agent.world().self().vel();
-    if ( M_command_body
-         && M_command_body->type() == PlayerCommand::DASH )
+    if (isBodyCommandType(PlayerCommand::DASH))
     {
         Vector2D accel( 0.0, 0.0 );
         getDashInfo( &accel, NULL );
@@ -1683,8 +1648,7 @@ ActionEffector::queuedNextBallPos() const
         vel = M_agent.world().ball().vel();
     }
 
-    if ( M_command_body
-         && M_command_body->type() == PlayerCommand::KICK )
+    if (isBodyCommandType(PlayerCommand::KICK))
     {
         getKickInfo( &accel, NULL );
     }
@@ -1708,8 +1672,7 @@ ActionEffector::queuedNextBallVel() const
         vel = M_agent.world().ball().vel();
     }
 
-    if ( M_command_body
-         && M_command_body->type() == PlayerCommand::KICK )
+    if (isBodyCommandType(PlayerCommand::KICK))
     {
         getKickInfo( &accel, NULL );
     }
