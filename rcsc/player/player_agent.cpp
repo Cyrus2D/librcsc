@@ -2428,6 +2428,7 @@ PlayerAgent::action()
     {
         std::ostringstream ostr;
         M_effector.makeCommand( ostr );
+        std::cout << "DONE MAKING" << std::endl;
         const std::string str = ostr.str();
         if ( str.length() > 0 )
         {
@@ -2435,30 +2436,38 @@ PlayerAgent::action()
                           "---- send[%s]",
                           str.c_str() );
             M_client->sendMessage( str.c_str() );
+            std::cout << "DONE SENDING" << std::endl;
         }
+        std::cout << "DONE NOT SENDING" << std::endl;
+
     }
 
     // ------------------------------------------------------------------------
     // update last decision time
     M_impl->last_decision_time_ = M_impl->current_time_;
     double elapsed = timer.elapsedReal();
+    std::cout << "ZA" << std::endl;
 
     dlog.addText( Logger::SYSTEM,
                   __FILE__" (action) elapsed %lf [ms]", elapsed );
     M_debug_client.addMessage( "%.0fms", elapsed );
+    std::cout << "ZB" << std::endl;
 
     //
     // handle action end event
     //
     handleActionEnd();
+    std::cout << "ZC" << std::endl;
 
     //
     // debugger output
     //
     M_impl->printDebug();
 
+    std::cout << "ZD" << std::endl;
     // delete all command objects and say messages
     M_effector.clearAllCommands();
+    std::cout << "ZE" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
