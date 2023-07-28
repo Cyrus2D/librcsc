@@ -489,9 +489,9 @@ ActionEffector::makeCommand( std::ostream & to )
     }
     else
     {
-        std::cout << "###TIME2: " << M_last_action_time.cycle() << std::endl;
+        //std::cout << "###TIME2: " << M_last_action_time.cycle() << std::endl;
         for(auto* command: M_commands_body){
-            std::cout << "###LEN: " << M_commands_body.size() << std::endl;
+            //std::cout << "###LEN: " << M_commands_body.size() << std::endl;
             M_last_body_commands_type[0].emplace_back(command->type());
             if (command->type() == PlayerCommand::CATCH)
                 M_catch_time = M_agent.world().time();
@@ -501,7 +501,7 @@ ActionEffector::makeCommand( std::ostream & to )
         }
         M_commands_body.clear();
     }
-    std::cout << "###A " << std::endl;
+    //std::cout << "###A " << std::endl;
 
     if ( M_command_turn_neck )
     {
@@ -512,7 +512,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_turn_neck = nullptr;
     }
 
-    std::cout << "###B " << std::endl;
+    //std::cout << "###B " << std::endl;
     if ( M_command_change_view )
     {
         M_command_change_view->toCommandString( to );
@@ -521,7 +521,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_change_view = nullptr;
     }
 
-    std::cout << "###C " << std::endl;
+    //std::cout << "###C " << std::endl;
     if ( M_command_change_focus )
     {
         M_command_change_focus->toCommandString( to );
@@ -530,7 +530,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_change_focus = nullptr;
     }
 
-    std::cout << "###D " << std::endl;
+    //std::cout << "###D " << std::endl;
     if ( M_command_pointto )
     {
         M_command_pointto->toCommandString( to );
@@ -539,7 +539,7 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_pointto = nullptr;
     }
 
-    std::cout << "###E " << std::endl;
+    //std::cout << "###E " << std::endl;
     if ( M_command_attentionto )
     {
         M_command_attentionto->toCommandString( to );
@@ -548,25 +548,25 @@ ActionEffector::makeCommand( std::ostream & to )
         M_command_attentionto = nullptr;
     }
 
-    std::cout << "###F " << std::endl;
+    //std::cout << "###F " << std::endl;
     if ( ServerParam::i().synchMode() )
     {
         PlayerDoneCommand done_com;
         done_com.toCommandString( to );
     }
 
-    std::cout << "###G " << std::endl;
+    //std::cout << "###G " << std::endl;
     makeSayCommand();
-    std::cout << "###GA " << std::endl;
+    //std::cout << "###GA " << std::endl;
     if ( M_command_say )
     {
-        std::cout << "###GB " << std::endl;
+        //std::cout << "###GB " << std::endl;
         M_command_say->toCommandString( to );
-        std::cout << "###GC " << std::endl;
+        //std::cout << "###GC " << std::endl;
         incCommandCount( PlayerCommand::SAY );
-        std::cout << "###GD " << std::endl;
+        //std::cout << "###GD " << std::endl;
     }
-    std::cout << "###H " << std::endl;
+    //std::cout << "###H " << std::endl;
 
     return to;
 }
@@ -579,59 +579,59 @@ ActionEffector::makeCommand( std::ostream & to )
 void
 ActionEffector::clearAllCommands()
 {
-    std::cout << "ZDA" << std::endl;
+    //std::cout << "ZDA" << std::endl;
     for (auto * c: M_commands_body){
         delete c;
         c = nullptr;
     }
-    std::cout << "ZDB" << std::endl;
+    //std::cout << "ZDB" << std::endl;
     M_commands_body.clear();
 
-    std::cout << "ZDC" << std::endl;
+    //std::cout << "ZDC" << std::endl;
     if ( M_command_turn_neck )
     {
         delete M_command_turn_neck;
         M_command_turn_neck = nullptr;
     }
 
-    std::cout << "ZDD" << std::endl;
+    //std::cout << "ZDD" << std::endl;
     if ( M_command_change_view )
     {
         delete M_command_change_view;
         M_command_change_view = nullptr;
     }
 
-    std::cout << "ZDE" << std::endl;
+    //std::cout << "ZDE" << std::endl;
     if ( M_command_change_focus )
     {
         delete M_command_change_focus;
         M_command_change_focus = nullptr;
     }
 
-    std::cout << "ZDF" << std::endl;
+    //std::cout << "ZDF" << std::endl;
     if ( M_command_pointto )
     {
         delete M_command_pointto;
         M_command_pointto = nullptr;
     }
 
-    std::cout << "ZDG" << std::endl;
+    //std::cout << "ZDG" << std::endl;
     if ( M_command_attentionto )
     {
         delete M_command_attentionto;
         M_command_attentionto = nullptr;
     }
 
-    std::cout << "ZDH" << std::endl;
+    //std::cout << "ZDH" << std::endl;
     if ( M_command_say )
     {
         delete M_command_say;
         M_command_say = nullptr;
     }
 
-    std::cout << "ZDI" << std::endl;
+    //std::cout << "ZDI" << std::endl;
     M_say_message_cont.clear();
-    std::cout << "ZDH" << std::endl;
+    //std::cout << "ZDH" << std::endl;
 }
 
 /*-------------------------------------------------------------------*/
@@ -1559,26 +1559,26 @@ ActionEffector::getSayMessageLength() const
 void
 ActionEffector::makeSayCommand()
 {
-    std::cout << "###G0 " << std::endl;
+    //std::cout << "###G0 " << std::endl;
     if ( M_command_say )
     {
         delete M_command_say;
         M_command_say = nullptr;
     }
 
-    std::cout << "###G1 " << std::endl;
+    //std::cout << "###G1 " << std::endl;
     M_say_message.erase();
 
     // std::sort( M_say_message_cont.begin(), M_say_message_cont.end(),
     //            SayMessagePtrSorter() );
 
-    std::cout << "###G2 " << std::endl;
+    //std::cout << "###G2 " << std::endl;
     for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
-        std::cout << "###G20 " << std::endl;
+        //std::cout << "###G20 " << std::endl;
         if ( ! i->appendTo( M_say_message ) )
         {
-            std::cout << "###G21 " << std::endl;
+            //std::cout << "###G21 " << std::endl;
             std::cerr << M_agent.world().teamName() << ' '
                       << M_agent.world().self().unum() << " : "
                       << M_agent.world().time() << " Error say message builder. type=["
@@ -1586,26 +1586,26 @@ ActionEffector::makeSayCommand()
                       << std::endl;
             dlog.addText( Logger::ACTION,
                           __FILE__" (makeSayCommand) error occured." );
-            std::cout << "###G22 " << std::endl;
+            //std::cout << "###G22 " << std::endl;
         }
-        std::cout << "###G23 " << std::endl;
+        //std::cout << "###G23 " << std::endl;
     }
 
-    std::cout << "###G3 " << std::endl;
+    //std::cout << "###G3 " << std::endl;
     if ( M_say_message.empty() )
     {
         return;
     }
 
-    std::cout << "###G4 " << std::endl;
+    //std::cout << "###G4 " << std::endl;
     M_command_say = new PlayerSayCommand( M_say_message,
                                           M_agent.config().version() );
 
-    std::cout << "###G5 " << std::endl;
+    //std::cout << "###G5 " << std::endl;
     dlog.addText( Logger::ACTION,
                   __FILE__" (makeSayCommand) say message [%s]",
                   M_say_message.c_str() );
-    std::cout << "###G6 " << std::endl;
+    //std::cout << "###G6 " << std::endl;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
