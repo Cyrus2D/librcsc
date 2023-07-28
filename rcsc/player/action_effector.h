@@ -594,6 +594,8 @@ public:
     */
     Vector2D queuedNextSelfPos() const;
 
+    Vector2D queuedNextSelfVel() const;
+
     /*!
       \brief get estimated next position using queued action effect
       \return estimated global position

@@ -685,7 +685,7 @@ ActionEffector::setKick( const double & power,
     M_commands_body.push_back(new PlayerKickCommand( command_power, rel_dir.degree() ));
 
     // set estimated action effect
-    M_kick_accel.setPolar( command_power * M_agent.world().self().kickRate(),
+    M_kick_accel.setPolar( command_power * M_agent.world().self().kickRate(), // TODO check it if kick is not first action
                            M_agent.world().self().body() + rel_dir );
 
     // rcssserver/src/player.cc
@@ -936,7 +936,7 @@ ActionEffector::setDash( const double & power,
 void
 ActionEffector::setTurn( const AngleDeg & moment )
 {
-    const double my_speed = M_agent.world().self().vel().r();
+    const double my_speed = queuedNextSelfVel().r();
     double command_moment = moment.degree();
     // required turn param
     command_moment
@@ -1635,22 +1635,54 @@ ActionEffector::queuedNextSelfBody() const
 Vector2D
 ActionEffector::queuedNextSelfPos() const
 {
+    const PlayerType& ptype = M_agent.world().self().playerType();
     Vector2D vel = M_agent.world().self().vel();
-    if (isBodyCommandType(PlayerCommand::DASH))
-    {
-        Vector2D accel( 0.0, 0.0 );
-        getDashInfo( &accel, NULL );
-        vel += accel;
+    Vector2D move(0, 0);
 
-        double tmp = vel.r();
-        if ( tmp > M_agent.world().self().playerType().playerSpeedMax() )
-        {
-            vel *= M_agent.world().self().playerType().playerSpeedMax() / tmp;
+    for (const auto* command: M_commands_body){
+        if (command->type() == PlayerCommand::DASH){
+            Vector2D accel( 0.0, 0.0 );
+            getDashInfo( &accel, NULL );
+            vel += accel;
+
+            double tmp = vel.r();
+            if ( tmp > ptype.playerSpeedMax() )
+            {
+                vel *= ptype.playerSpeedMax() / tmp;
+            }
         }
+        move += vel;
+        vel *= ptype.playerDecay();
     }
 
-    return M_agent.world().self().pos() + vel;
+    return M_agent.world().self().pos() + move;
 }
+
+Vector2D 
+ActionEffector::queuedNextSelfVel() const
+{
+    const PlayerType& ptype = M_agent.world().self().playerType();
+    Vector2D vel = M_agent.world().self().vel();
+    
+    for (const auto* command: M_commands_body){
+        if (command->type() == PlayerCommand::DASH){
+            Vector2D accel( 0.0, 0.0 );
+            getDashInfo( &accel, NULL );
+            vel += accel;
+
+            double tmp = vel.r();
+            if ( tmp > ptype.playerSpeedMax() )
+            {
+                vel *= ptype.playerSpeedMax() / tmp;
+            }
+        }
+        vel *= ptype.playerDecay();
+    }
+
+    return vel;
+
+}
+
 
 /*-------------------------------------------------------------------*/
 /*!
