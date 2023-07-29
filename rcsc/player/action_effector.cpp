@@ -102,6 +102,10 @@ ActionEffector::ActionEffector( const PlayerAgent & agent )
 ActionEffector::~ActionEffector()
 {
     for (auto * c: M_commands_body){
+        if (!c){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+            continue;
+        }
         delete c;
         c = nullptr;
     }
@@ -491,6 +495,10 @@ ActionEffector::makeCommand( std::ostream & to )
     {
         //std::cout << "###TIME2: " << M_last_action_time.cycle() << std::endl;
         for(auto* command: M_commands_body){
+            if (!command){
+                std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+                continue;
+            }
             //std::cout << "###LEN: " << M_commands_body.size() << std::endl;
             M_last_body_commands_type[0].emplace_back(command->type());
             if (command->type() == PlayerCommand::CATCH)
@@ -581,6 +589,10 @@ ActionEffector::clearAllCommands()
 {
     //std::cout << "ZDA" << std::endl;
     for (auto * c: M_commands_body){
+        if (!c){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+            continue;
+        }
         delete c;
         c = nullptr;
     }
@@ -1409,6 +1421,10 @@ ActionEffector::removeSayMessage( const char header )
 
     while ( it != M_say_message_cont.end() )
     {
+        if (*it == nullptr){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to say command" << std::endl; 
+            continue;
+        }
         if ( (*it)->header() == header )
         {
             it = M_say_message_cont.erase( it );
@@ -1546,6 +1562,10 @@ ActionEffector::getSayMessageLength() const
 
     for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
+        if (i == nullptr){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to say command" << std::endl; 
+            continue;
+        }
         len += i->length();
     }
 
@@ -1575,6 +1595,10 @@ ActionEffector::makeSayCommand()
     //std::cout << "###G2 " << std::endl;
     for ( const SayMessage::Ptr & i : M_say_message_cont )
     {
+        if (i == nullptr){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to say command" << std::endl; 
+            continue;
+        }
         //std::cout << "###G20 " << std::endl;
         if ( ! i->appendTo( M_say_message ) )
         {
@@ -1640,6 +1664,10 @@ ActionEffector::queuedNextSelfPos() const
     Vector2D move(0, 0);
 
     for (const auto* command: M_commands_body){
+        if (!command){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+            continue;
+        }
         if (command->type() == PlayerCommand::DASH){
             Vector2D accel( 0.0, 0.0 );
             getDashInfo( &accel, NULL );
@@ -1665,6 +1693,10 @@ ActionEffector::queuedNextSelfVel() const
     Vector2D vel = M_agent.world().self().vel();
     
     for (const auto* command: M_commands_body){
+        if (!command){
+            std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+            continue;
+        }
         if (command->type() == PlayerCommand::DASH){
             Vector2D accel( 0.0, 0.0 );
             getDashInfo( &accel, NULL );

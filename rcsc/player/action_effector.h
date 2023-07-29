@@ -399,9 +399,14 @@ public:
 
     bool isLastBodyCommandType(PlayerCommand::Type command_type) const
       {
-        for (const auto c: M_last_body_commands_type[0])
+        for (const auto c: M_last_body_commands_type[0]){
+            if (!c){
+              std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+              continue;
+            }
           if (c == command_type)
             return true;
+        }
         return false;
       }
 
@@ -412,9 +417,14 @@ public:
     bool isLastBodyCommandType( PlayerCommand::Type command_type, int i ) const
       {
         if (0 <= i && i < 2)
-          for (const auto c: M_last_body_commands_type[i])
+          for (const auto c: M_last_body_commands_type[i]){
+            if (!c){
+              std::cout << __FILE__ << " " << __LINE__ << "nullptr to command" << std::endl; 
+              continue;
+            }
             if (c == command_type)
               return true;
+          }
         return false;
       }
     
